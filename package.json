@@ -1,0 +1,15 @@
+{
+  "name": "cookie",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "elysia": "^0.7.21"
+  }
+}
