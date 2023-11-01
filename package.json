@@ -1,15 +1,18 @@
 {
   "name": "cookie",
-  "module": "index.ts",
-  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -- turbo dev",
+    "build": "dotenv -- turbo build"
+  },
   "devDependencies": {
-    "bun-types": "latest"
+    "dotenv-cli": "^7.3.0",
+    "eslint": "^8.48.0",
+    "turbo": "latest"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "discord.js": "^14.13.0",
-    "elysia": "^0.7.21"
-  }
+  "packageManager": "yarn@1.22.19",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

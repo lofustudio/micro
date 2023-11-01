@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import Cookie from "..";
+import Cookie from "../modules/client";
 
 interface Run {
     (
