@@ -1,7 +1,8 @@
-import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { Client, Collection, VoiceBasedChannel, VoiceChannel } from "discord.js";
+import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { DiscordCommand } from "../types/command";
 import { DiscordEvent } from "../types/event";
+import { bgBlue, bgGreen } from "colorette";
 import { readdirSync } from "fs";
 import path from "path";
 
@@ -22,7 +23,7 @@ export default class VEGA extends Client {
     public tts: {
         channel: null | string,
         connection: null | VoiceConnection,
-        lastUser: null,
+        lastUser: string | null,
         queue: Array<AudioResource<{ title: string; }>>
     } = {
             channel: null,
@@ -31,7 +32,13 @@ export default class VEGA extends Client {
             queue: []
         }
 
+    private debug(msg: string) {
+        if (!process.env.NODE_ENV) return;
+        if (process.env.NODE_ENV === "development") console.log(bgBlue("[Bot<debug>]") + `: ${msg}`);
+    }
+
     public async start() {
+        if (!process.env.NODE_ENV) process.env.NODE_ENV = "production";
         if (!process.env.TOKEN) throw new Error("No token provided.");
 
         const eventsPath = path.join(__dirname, "..", "events");
@@ -39,7 +46,7 @@ export default class VEGA extends Client {
 
         readdirSync(eventsPath).forEach((file) => {
             const { event } = require(`${eventsPath}/${file}`);
-            console.log(`Loaded event ${event.name}`);
+            this.debug(`Loaded event ${event.name}`);
             this.events.set(event.name, event);
             this.on(event.name, event.run.bind(null, this));
         });
@@ -49,13 +56,13 @@ export default class VEGA extends Client {
 
             for (const file of commandsList) {
                 const { command } = require(`${commandsPath}/${dir}/${file}`);
-                console.log(`Loaded command ${command.name}`);
+                this.debug(`Loaded command ${command.name}`);
                 this.commands.set(command.name, command);
             }
         });
 
         await this.login(process.env.TOKEN).then(async () => {
-            console.log("Connected to Discord.");
+            this.debug("Connected to Discord.");
         });
     }
 };

@@ -1,5 +1,5 @@
 {
-  "name": "cookie",
+  "name": "vega",
   "private": true,
   "scripts": {
     "dev": "dotenv -- turbo dev",
@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "dotenv-cli": "^7.3.0",
-    "eslint": "^8.48.0",
+    "eslint": "^8.53.0",
     "turbo": "latest"
   },
   "packageManager": "yarn@1.22.19",

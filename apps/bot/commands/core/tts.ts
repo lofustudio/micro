@@ -9,13 +9,31 @@ export function ttsHandle(client: VEGA, message: Message, args: Array<string>) {
     if (!message.content) return message.reply("TTS only works with text atm.");
 
     let sentence = message.content;
+    let sentenceArr = message.content.split(" ");
+
+    sentence.match(/(https?:\/\/[^\s]+)/g) ? sentence = "sent a link." : null;
+
+    for (let i = 0; i < sentenceArr.length; i++) {
+
+    }
+
+    let dscEmojiReg = /<:\w+:[0-9]+>/g;
+    let uniEmojiReg = /(<a?)?:\w+:(\d{18}>)?/g;
+
+    // console.log(sentence.match(/<a?:.+?:\d{18}>|\p{Extended_Pictographic}/gu));
+
+    let username = message.guild?.members.cache.get(message.author.id)?.nickname ?? message.author.username
+
+    if (client.tts.lastUser !== username) {
+        sentence = `${username} said ${sentence}`;
+        client.tts.lastUser = username;
+    }
 
     const url = tts.getAudioUrl(sentence, {
         lang: "en-US",
         slow: false,
         host: 'https://translate.google.com'
     });
-
 
     if (!client.audio.connection) {
         client.audio.connection = joinVoiceChannel({
