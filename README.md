@@ -1,3 +1,14 @@
 # VEGA
 
-Some random Discord bot I'm working on to distract myself.
+A utility Discord bot, includes TTS.
+
+## Local development
+```shell
+git clone https://lofu
+```
+
+## Building VEGA
+```shell
+go generate ./...
+go build
+```

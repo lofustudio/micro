@@ -3,9 +3,11 @@ package main
 import (
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 
 	"github.com/lofustudio/VEGA/bot"
+	"github.com/lofustudio/VEGA/dash"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -19,6 +21,8 @@ func main() {
 	// Viper setup
 	config()
 
+	defer clearTempDir()
+
 	// Create or open the database
 	db, err := bbolt.Open(viper.GetString("database"), 0600, nil)
 	if err != nil {
@@ -27,8 +31,14 @@ func main() {
 	defer db.Close()
 
 	// Start the bot
-	close := bot.New()
-	defer close()
+	botClose := bot.Start(db)
+	defer botClose()
+
+	// Start the dash
+	if viper.GetBool("dash") {
+		dashClose := dash.Start()
+		defer dashClose()
+	}
 
 	// Wait until CTRL-C
 	log.Info().Msg("Bot is running. Press CTRL-C to exit.")
@@ -39,11 +49,13 @@ func main() {
 
 func config() {
 	// Set defaults
+	viper.SetDefault("dash", false)
+	viper.SetDefault("prefix", "!")
 	viper.SetDefault("database", "vega.db")
 	viper.SetDefault("intents", 33409)
 	// Read from config
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
+	viper.SetConfigName("prod")
+	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -53,5 +65,16 @@ func config() {
 	// Panic if token is not set
 	if !viper.IsSet("token") {
 		log.Panic().Msg("Discord bot token not found")
+	}
+}
+
+func clearTempDir() {
+	tempdir := path.Join(os.TempDir(), "VEGA")
+	_, err := os.Stat(tempdir)
+	if err == nil {
+		err = os.RemoveAll(tempdir)
+		if err != nil {
+			log.Error().Err(err).Msg("Error deleting config file")
+		}
 	}
 }
