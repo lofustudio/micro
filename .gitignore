@@ -14,7 +14,7 @@
 !go.sum
 !go.mod
 
-!config.example.yaml
+!prod.example.env
 
 !README.md
 !LICENSE
