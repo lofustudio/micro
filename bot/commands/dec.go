@@ -1,13 +1,15 @@
 package commands
 
 import (
+	"os"
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/lofustudio/VEGA/bot/voice"
 	"github.com/lofustudio/VEGA/tts"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
-	"strings"
 )
 
 type DecCommand struct{}
@@ -45,6 +47,16 @@ func (p DecCommand) Run(s *discordgo.Session, m *discordgo.MessageCreate, _ *bbo
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to encode speech")
 		return
+	}
+
+	// Delete the tempoary .wav file
+	file, ok := speech.(*os.File)
+	if ok {
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to delete temporary .wav file")
+			return
+		}
 	}
 
 	vc.AddToQueue(encoded)

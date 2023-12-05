@@ -1,36 +1,42 @@
-//go:build windows
-
 package tts
 
 import (
+	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"io"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
+
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 // NewDecSpeech uses DECtalk to generate a speech (wav)
 func NewDecSpeech(text string) (io.ReadCloser, error) {
-	tempdir := path.Join(os.TempDir(), "VEGA")
-	_, err := os.Stat(tempdir)
-	if os.IsNotExist(err) {
-		log.Trace().Str("tempdir", tempdir).Msg("Creating temp directory")
-		err := os.Mkdir(tempdir, 0666)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to create temp directory")
-			return nil, err
-		}
+	tempdir, err := detectTempDir()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find temporary directory")
+		return nil, err
 	}
 
 	file := path.Join(tempdir, fmt.Sprint("temp_", rand.Intn(1000), ".wav"))
 	log.Trace().Str("file", file).Msg("Temporary wav file")
 
-	cmd := exec.Command("./say.exe", "-w", file, fmt.Sprint("[:phoneme on]", text))
-	cmd.Dir = viper.GetString("dectalk")
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("./say.exe", "-w", file, fmt.Sprint("[:phoneme on]", text))
+		cmd.Dir = viper.GetString("dectalk")
+	case "linux":
+		cmd = exec.Command("./say", "-fo", file, "-a", fmt.Sprint('"', "[:phoneme on]", text, '"'))
+		cmd.Dir = viper.GetString("dectalk")
+	default:
+		return nil, errors.ErrUnsupported
+	}
+
 	log.Trace().Strs("args", cmd.Args).Msg("Running dectalk")
 	err = cmd.Run()
 	if err != nil {
