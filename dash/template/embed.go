@@ -2,9 +2,10 @@ package template
 
 import (
 	"embed"
-	"github.com/rs/zerolog/log"
 	"io/fs"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 //go:generate yarn

@@ -18,6 +18,8 @@ func main() {
 	// Zerolog setup
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	log.Info().Msg("Micro v0.0.1 („• ᴗ •„)")
+
 	// Viper setup
 	config()
 

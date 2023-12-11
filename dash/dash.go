@@ -9,7 +9,8 @@ import (
 
 func Start() func() error {
 	dash := fiber.New(fiber.Config{
-		AppName: "Dash",
+		AppName:               "Dash",
+		DisableStartupMessage: true,
 	})
 
 	dash.Use(cors.New(cors.Config{
@@ -19,7 +20,7 @@ func Start() func() error {
 
 	dash.All("/*", filesystem.New(filesystem.Config{
 		Root:         template.Dist(),
-		NotFoundFile: "index.html",
+		NotFoundFile: "404.html",
 		Index:        "index.html",
 	}))
 
