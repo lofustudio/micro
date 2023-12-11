@@ -1,14 +1,3 @@
-# VEGA
+# micro („• ᴗ •„)
 
-A utility Discord bot, includes TTS.
-
-## Local development
-```shell
-git clone https://lofu
-```
-
-## Building VEGA
-```shell
-go generate ./...
-go build
-```
+a utility Discord bot made in Go and Svelte.
