@@ -35,6 +35,9 @@ func (*PiperTTS) Run(request TTSRequest) (dca.OpusReader, error) {
 	if request.Voice == "" {
 		request.Voice = "en_US-lessac-medium"
 	}
+	if request.Voice == "glados" {
+		request.Voice = "glados.onnx"
+	}
 
 	tempdir, err := getTempDir()
 	if err != nil {
@@ -49,10 +52,10 @@ func (*PiperTTS) Run(request TTSRequest) (dca.OpusReader, error) {
 	switch runtime.GOOS {
 	case "windows":
 		// Windows build cannot download models on its own
-		cmd = exec.Command("cmd", "/C", fmt.Sprint("echo ", request.Text, " | ", "piper.exe ", "--model ", request.Voice+".onnx ", "--output_file ", file))
+		cmd = exec.Command("cmd", "/C", fmt.Sprint("echo ", "'"+request.Text+"'", " | ", "piper.exe ", "-m ", request.Voice+".onnx ", "-f ", file))
 		cmd.Dir = viper.GetString("piper")
 	case "linux":
-		cmd = exec.Command("/usr/bin/echo", "'"+request.Text+"'", "|", "./piper", "--model", request.Voice, "--output_file", file, "--data-dir", "./data", "--download-dir", "./download")
+		cmd = exec.Command("bash", "-c", fmt.Sprint("echo ", "'"+request.Text+"'", " | ", "./piper ", "-m ", request.Voice, " -f ", file))
 		cmd.Dir = viper.GetString("piper")
 	default:
 		return nil, errors.ErrUnsupported
