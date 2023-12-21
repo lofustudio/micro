@@ -34,5 +34,5 @@ func Start(db *bbolt.DB) func() error {
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	log.Info().Msg("The bot is ready!")
+	log.Info().Str("user", event.User.Username).Msg("The bot is ready!")
 }

@@ -1,12 +1,15 @@
 package commands
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/lofustudio/VEGA/bot/voice"
 	"github.com/lofustudio/VEGA/tts"
+	"github.com/matthew-balzan/dca"
 	"github.com/rs/zerolog/log"
 	"go.etcd.io/bbolt"
-	"strings"
 )
 
 type TtsCommand struct{}
@@ -21,7 +24,14 @@ func (p TtsCommand) Description() string {
 
 func (p TtsCommand) Run(s *discordgo.Session, m *discordgo.MessageCreate, _ *bbolt.DB) {
 	words := strings.Split(m.Content, " ")
-	content := strings.Join(words[1:], " ")
+	method := words[1]
+	lang := words[2]
+
+	find, err := tts.FindTTS(method)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find TTS method")
+		return
+	}
 
 	vc := voice.FindByGuild(m.GuildID)
 	if vc == nil {
@@ -29,15 +39,14 @@ func (p TtsCommand) Run(s *discordgo.Session, m *discordgo.MessageCreate, _ *bbo
 		return
 	}
 
-	speech, err := tts.NewGTSpeech(content)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to generate speech")
-		return
+	var encoded dca.OpusReader
+	if slices.Contains(find.Voices(), lang) {
+		encoded, err = find.Run(tts.TTSRequest{Text: strings.Join(words[3:], " "), Voice: lang})
+	} else {
+		encoded, err = find.Run(tts.TTSRequest{Text: strings.Join(words[2:], " ")})
 	}
-
-	encoded, err := tts.EncodeToOpus(speech)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to encode speech")
+		log.Error().Err(err).Msg("Failed to play TTS")
 		return
 	}
 

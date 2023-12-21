@@ -1,11 +1,12 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
-	"strings"
 )
 
 type Command interface {
@@ -17,15 +18,14 @@ type Command interface {
 var commands []Command
 var db *bbolt.DB
 
-func Start(database *bbolt.DB) []Command {
+func Start(database *bbolt.DB) *[]Command {
 	db = database
 	commands = nil
 	commands = append(commands, new(PingCommand))
 	commands = append(commands, new(JoinCommand))
 	commands = append(commands, new(TtsCommand))
-	commands = append(commands, new(DecCommand))
 
-	return commands
+	return &commands
 }
 
 func MessageCommandHandler(s *discordgo.Session, m *discordgo.MessageCreate) {

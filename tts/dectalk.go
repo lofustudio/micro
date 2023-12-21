@@ -3,20 +3,36 @@ package tts
 import (
 	"errors"
 	"fmt"
-	"io"
 	"math/rand"
-	"os"
 	"os/exec"
 	"path"
 	"runtime"
 
+	"github.com/matthew-balzan/dca"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
-// NewDecSpeech uses DECtalk to generate a speech (wav)
-func NewDecSpeech(text string) (io.ReadCloser, error) {
-	tempdir, err := detectTempDir()
+type DectalkTTS struct{}
+
+// Name implements TTS.
+func (*DectalkTTS) Name() string {
+	return "dec"
+}
+
+// Voices implements TTS.
+func (*DectalkTTS) Voices() []string {
+	return nil
+}
+
+// Run implements TTS.
+// TODO: delete the wav file
+func (*DectalkTTS) Run(request TTSRequest) (dca.OpusReader, error) {
+	if !viper.IsSet("dectalk") {
+		return nil, errors.New("DECtalk not found")
+	}
+
+	tempdir, err := getTempDir()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find temporary directory")
 		return nil, err
@@ -28,10 +44,10 @@ func NewDecSpeech(text string) (io.ReadCloser, error) {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("./say.exe", "-w", file, fmt.Sprint("[:phoneme on]", text))
+		cmd = exec.Command("./say.exe", "-w", file, fmt.Sprint("[:phoneme on]", request.Text))
 		cmd.Dir = viper.GetString("dectalk")
 	case "linux":
-		cmd = exec.Command("./say", "-fo", file, "-a", fmt.Sprint('"', "[:phoneme on]", text, '"'))
+		cmd = exec.Command("./say", "-fo", file, "-a", fmt.Sprint('"', "[:phoneme on]", request.Text, '"'))
 		cmd.Dir = viper.GetString("dectalk")
 	default:
 		return nil, errors.ErrUnsupported
@@ -44,11 +60,12 @@ func NewDecSpeech(text string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	wavFile, err := os.Open(file)
+	encoded, err := EncodeFileToOpus(file)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to open .wav file")
 		return nil, err
 	}
 
-	return wavFile, nil
+	return encoded, nil
 }
+
+var _ TTS = (*DectalkTTS)(nil)

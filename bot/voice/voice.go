@@ -2,11 +2,12 @@ package voice
 
 import (
 	"errors"
+	"io"
+	"sync"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/matthew-balzan/dca"
 	"github.com/rs/zerolog/log"
-	"io"
-	"sync"
 )
 
 // TODO: convert into a map?
@@ -53,11 +54,14 @@ func JoinVoice(s *discordgo.Session, gID string, vcID string) (*Connection, erro
 }
 
 func (vc *Connection) handleQueue() {
+out:
 	for {
 		var play dca.OpusReader
 		select {
 		case play = <-vc.queue:
 			log.Trace().Str("gID", vc.conn.GuildID).Str("vcID", vc.conn.ChannelID).Msg("Playing audio")
+
+			// Stream audio and wait for finish
 			done := make(chan error)
 			dca.NewStream(play, vc.conn, done)
 			err := <-done
@@ -66,12 +70,13 @@ func (vc *Connection) handleQueue() {
 				log.Error().Err(err).Msg("Failed to play Opus data")
 			}
 
+			// If input is a session, cleanup
 			session, ok := play.(*dca.EncodeSession)
 			if ok {
 				session.Cleanup()
 			}
 		case <-vc.stop:
-			break
+			break out
 		}
 	}
 }

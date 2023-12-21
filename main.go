@@ -23,14 +23,16 @@ func main() {
 	// Viper setup
 	config()
 
-	defer tts.ClearTempDir()
-
 	// Create or open the database
 	db, err := bbolt.Open(viper.GetString("database"), 0600, nil)
 	if err != nil {
 		log.Panic().Err(err).Msg("Error creating or opening database")
 	}
 	defer db.Close()
+
+	// Setup the TTS
+	tts.Start(db)
+	defer tts.DeleteTempDir()
 
 	// Start the bot
 	botClose := bot.Start(db)
