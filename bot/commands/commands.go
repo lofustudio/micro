@@ -24,7 +24,7 @@ func Start(database *bbolt.DB) *[]Command {
 	commands = append(commands, new(PingCommand))
 	commands = append(commands, new(JoinCommand))
 	commands = append(commands, new(TtsCommand))
-
+	commands = append(commands, new(LeaveCommand))
 	return &commands
 }
 
