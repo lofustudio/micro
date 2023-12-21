@@ -31,6 +31,7 @@ func Start(database *bbolt.DB) *[]TTS {
 	tts = nil
 	tts = append(tts, new(GTranslateTTS))
 	tts = append(tts, new(DectalkTTS))
+	tts = append(tts, new(TiktokTTS))
 	return &tts
 }
 
