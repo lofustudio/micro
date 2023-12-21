@@ -47,7 +47,7 @@ func (*DectalkTTS) Run(request TTSRequest) (dca.OpusReader, error) {
 		cmd = exec.Command("./say.exe", "-w", file, fmt.Sprint("[:phoneme on]", request.Text))
 		cmd.Dir = viper.GetString("dectalk")
 	case "linux":
-		cmd = exec.Command("./say", "-fo", file, "-a", fmt.Sprint('"', "[:phoneme on]", request.Text, '"'))
+		cmd = exec.Command("./say", "-fo", file, "-a", fmt.Sprint("[:phoneme on]", request.Text))
 		cmd.Dir = viper.GetString("dectalk")
 	default:
 		return nil, errors.ErrUnsupported
